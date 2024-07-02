@@ -1,0 +1,32 @@
+# .github/workflows/preview.yml
+name: Deploy PR previews
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+concurrency: preview-${{ github.ref }}
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Deploy preview
+      - uses: rossjrw/pr-preview-action@v1
+        if: contains(['opened', 'reopened', 'synchronize'], github.event.action)
+        with:
+          source-dir: .
+          action: deploy
+        
+      - uses: rossjrw/pr-preview-action@v1
+        if: github.event.action == "closed" && !github.event.pull_request.merged
+        with:
+          source-dir: .
+          action: remove
